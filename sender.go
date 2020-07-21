@@ -16,15 +16,14 @@ func startSendOrder() {
 
 	nsqAddress := viper.GetString(FlagNSQDAddress) // retrieve value from viper
 
+	// use the config to connect the nsqd.
+	w, _ := nsq.NewProducer(nsqAddress+":4150", config)
+
 	var wait sync.WaitGroup
 	for i := 0; i < 10000; i++ {
 
 		wait.Add(1)
 		go func(ii int) {
-
-			// use the config to connect the nsqd.
-			w, _ := nsq.NewProducer(nsqAddress+":4150", config)
-
 			data := OrderData{
 				UserName:   "A",
 				OrderID:    "ac01",
@@ -40,9 +39,10 @@ func startSendOrder() {
 			if err != nil {
 				log.Panic("連線失敗。", err)
 			}
-			w.Stop()
 			wait.Done()
 		}(i)
 	}
 	wait.Wait()
+	w.Stop()
+
 }
